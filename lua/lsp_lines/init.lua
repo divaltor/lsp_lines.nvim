@@ -42,7 +42,7 @@ M.setup = function(options)
         ns.user_data.virt_lines_ns = vim.api.nvim_create_namespace("")
       end
 
-      vim.api.nvim_clear_autocmds({ group = "LspLines" })
+      vim.api.nvim_clear_autocmds({ group = "LspLines", buffer = bufnr })
       if opts.virtual_lines.only_current_line then
         vim.api.nvim_create_autocmd("CursorMoved", {
           buffer = bufnr,
@@ -63,7 +63,7 @@ M.setup = function(options)
       local ns = vim.diagnostic.get_namespace(namespace)
       if ns.user_data.virt_lines_ns then
         render.hide(ns.user_data.virt_lines_ns, bufnr)
-        vim.api.nvim_clear_autocmds({ group = "LspLines" })
+        vim.api.nvim_clear_autocmds({ group = "LspLines", buffer = bufnr })
       end
     end,
   }
