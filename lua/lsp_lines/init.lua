@@ -26,10 +26,7 @@ end
 
 -- Registers a wrapper-handler to render lsp lines.
 -- This should usually only be called once, during initialisation.
-M.setup = function(options)
-  require("lsp_lines.config").setup(options)
-
-  vim.api.nvim_create_augroup("LspLines", { clear = true })
+M.setup = function()
   -- TODO: On LSP restart (e.g.: diagnostics cleared), errors don't go away.
   vim.diagnostic.handlers.virtual_lines = {
     ---@param namespace number
@@ -40,16 +37,18 @@ M.setup = function(options)
       local ns = vim.diagnostic.get_namespace(namespace)
       if not ns.user_data.virt_lines_ns then
         ns.user_data.virt_lines_ns = vim.api.nvim_create_namespace("")
+        local group = "LspLines_" .. ns.user_data.virt_lines_ns
+        ns.user_data.virt_lines_augroup = vim.api.nvim_create_augroup(group, { clear = true })
       end
 
-      vim.api.nvim_clear_autocmds({ group = "LspLines", buffer = bufnr })
+      vim.api.nvim_clear_autocmds({ group = ns.user_data.virt_lines_augroup, buffer = bufnr })
       if opts.virtual_lines.only_current_line then
         vim.api.nvim_create_autocmd("CursorMoved", {
           buffer = bufnr,
           callback = function()
             render_current_line(diagnostics, ns.user_data.virt_lines_ns, bufnr, opts)
           end,
-          group = "LspLines",
+          group = ns.user_data.virt_lines_augroup,
         })
         -- Also show diagnostics for the current line before the first CursorMoved event
         render_current_line(diagnostics, ns.user_data.virt_lines_ns, bufnr, opts)
@@ -63,7 +62,7 @@ M.setup = function(options)
       local ns = vim.diagnostic.get_namespace(namespace)
       if ns.user_data.virt_lines_ns then
         render.hide(ns.user_data.virt_lines_ns, bufnr)
-        vim.api.nvim_clear_autocmds({ group = "LspLines", buffer = bufnr })
+        vim.api.nvim_clear_autocmds({ group = ns.user_data.virt_lines_augroup, buffer = bufnr })
       end
     end,
   }
